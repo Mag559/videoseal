@@ -15,6 +15,23 @@ class Model:
         self.model.eval()
 
 
+    def bits_to_tensor(self, bits: list[int]) -> torch.Tensor:
+        return torch.tensor([bits]).float().to(self.device)
+
+
+    @staticmethod
+    def tensor_to_bits(tensor: torch.Tensor) -> list[int]:
+        return tensor.int().tolist()[0]
+
+
+    def hide_bits(self, img: Image.Image, bits: list[int]) -> Image.Image:
+        return self.hide_tensor(img, self.bits_to_tensor(bits))
+
+
+    def detect_bits(self, img: Image.Image) -> list[int]:
+        return Model.tensor_to_bits(self.detect_tensor(img))
+
+
     def hide_tensor(self, img: Image.Image, msg: torch.Tensor) -> Image.Image:
         img_o = to_tensor(img).unsqueeze(0).float().to(self.device)
 

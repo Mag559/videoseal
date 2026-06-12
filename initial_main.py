@@ -1,5 +1,4 @@
 from collections.abc import Callable
-import torch
 from PIL import Image
 from pathlib import Path
 
@@ -7,12 +6,8 @@ from handle_model import Model
 
 
 def recursive_process(input_directory: Path, output_directory, task: Callable[[Path, Path], None]) -> None:
-    output_directory.mkdir(parents=True, exist_ok=True)
     for item in input_directory.iterdir():
-        # if item.name == "rehidden":
-        #     continue
         if item.is_dir():
-            (output_directory / item.name).mkdir(parents=True, exist_ok=True)
             recursive_process(item, output_directory / item.name, task)
             continue
 
@@ -20,18 +15,18 @@ def recursive_process(input_directory: Path, output_directory, task: Callable[[P
         task(item, output_directory / item.name)
 
 
-def hide_and_save(model, img_path, out_path, msg):
+def hide_and_save(model: Model, msg: list[int], img_path: Path, out_path: Path) -> None:
     # Load image.
     img = Image.open(img_path).convert("RGB")
-    img_w = model.hide_tensor(img, msg)
+    img_w = model.hide_bits(img, msg)
 
     out_path.parent.mkdir(parents=True, exist_ok=True)
     img_w.save(out_path)
 
 
-def detect_and_save(model, img_w_path, out_path):
+def detect_and_save(model: Model, img_w_path: Path, out_path: Path) -> None:
     img_w = Image.open(img_w_path).convert("RGB")
-    result = model.detect_tensor(img_w)
+    result = model.detect_bits(img_w)
     with open(out_path, "w") as f:
         f.write(str(result))
 
@@ -49,22 +44,23 @@ if __name__ == "__main__":
 
     model: Model = Model()
 
-    msg = torch.tensor([[1., 1., 1., 0., 0., 1., 1., 1., 0., 0., 1., 0., 0., 1., 1., 1., 0., 1.,
-                         1., 1., 0., 0., 1., 0., 0., 1., 1., 1., 0., 0., 0., 1., 1., 1., 1., 0.,
-                         0., 0., 0., 1., 1., 0., 0., 1., 0., 1., 0., 1., 0., 0., 0., 0., 0., 1.,
-                         0., 0., 0., 1., 0., 0., 0., 1., 1., 0., 0., 0., 0., 0., 1., 1., 1., 1.,
-                         0., 1., 0., 1., 1., 1., 0., 0., 1., 0., 0., 1., 0., 1., 0., 0., 0., 1.,
-                         1., 1., 1., 0., 0., 0., 1., 0., 0., 1., 1., 0., 1., 0., 0., 0., 1., 1.,
-                         1., 1., 1., 0., 1., 1., 0., 0., 0., 1., 0., 1., 1., 1., 1., 1., 0., 0.,
-                         0., 0., 1., 1., 1., 1., 0., 0., 1., 1., 0., 0., 0., 0., 0., 1., 1., 0.,
-                         0., 1., 1., 0., 1., 0., 1., 0., 1., 0., 1., 0., 0., 0., 0., 1., 1., 1.,
-                         0., 0., 0., 1., 0., 0., 1., 0., 1., 1., 0., 1., 0., 1., 0., 0., 1., 1.,
-                         1., 0., 0., 0., 1., 0., 1., 1., 1., 0., 0., 1., 0., 0., 1., 0., 1., 1.,
-                         1., 1., 0., 1., 0., 1., 0., 1., 0., 1., 0., 0., 0., 1., 1., 0., 0., 1.,
-                         1., 1., 0., 0., 0., 1., 1., 0., 1., 1., 0., 0., 1., 1., 1., 1., 0., 0.,
-                         0., 0., 1., 0., 1., 1., 1., 1., 1., 1., 0., 0., 0., 0., 0., 1., 1., 1.,
-                         0., 0., 0., 0.]]).to(model.device)
-    hide_and_save(model, Path(r"C:\Users\macie\GitHub\SteganographyProjects\videoseal\assets\imgs\1.jpg"), Path("test.png"), msg)
+    msg = [1., 1., 1., 0., 0., 1., 1., 1., 0., 0., 1., 0., 0., 1., 1., 1., 0., 1.,
+             1., 1., 0., 0., 1., 0., 0., 1., 1., 1., 0., 0., 0., 1., 1., 1., 1., 0.,
+             0., 0., 0., 1., 1., 0., 0., 1., 0., 1., 0., 1., 0., 0., 0., 0., 0., 1.,
+             0., 0., 0., 1., 0., 0., 0., 1., 1., 0., 0., 0., 0., 0., 1., 1., 1., 1.,
+             0., 1., 0., 1., 1., 1., 0., 0., 1., 0., 0., 1., 0., 1., 0., 0., 0., 1.,
+             1., 1., 1., 0., 0., 0., 1., 0., 0., 1., 1., 0., 1., 0., 0., 0., 1., 1.,
+             1., 1., 1., 0., 1., 1., 0., 0., 0., 1., 0., 1., 1., 1., 1., 1., 0., 0.,
+             0., 0., 1., 1., 1., 1., 0., 0., 1., 1., 0., 0., 0., 0., 0., 1., 1., 0.,
+             0., 1., 1., 0., 1., 0., 1., 0., 1., 0., 1., 0., 0., 0., 0., 1., 1., 1.,
+             0., 0., 0., 1., 0., 0., 1., 0., 1., 1., 0., 1., 0., 1., 0., 0., 1., 1.,
+             1., 0., 0., 0., 1., 0., 1., 1., 1., 0., 0., 1., 0., 0., 1., 0., 1., 1.,
+             1., 1., 0., 1., 0., 1., 0., 1., 0., 1., 0., 0., 0., 1., 1., 0., 0., 1.,
+             1., 1., 0., 0., 0., 1., 1., 0., 1., 1., 0., 0., 1., 1., 1., 1., 0., 0.,
+             0., 0., 1., 0., 1., 1., 1., 1., 1., 1., 0., 0., 0., 0., 0., 1., 1., 1.,
+             0., 0., 0., 0.]
+    hide_and_save(model, msg,
+                  Path(r"C:\Users\macie\GitHub\SteganographyProjects\videoseal\assets\imgs\1.jpg"), Path("test.png"))
     # recursive_process(
     #     cover_images,
     #     stego_images,
