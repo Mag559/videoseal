@@ -34,11 +34,11 @@ def reduce_color_depth(img, levels=32):
     return reduced.astype(np.uint8)
 
 
-def modify(image: Path, out_dir: Path, attacks: dict[str, Callable]):
-    image = cv2.imread(image, cv2.IMREAD_COLOR)
+def attack_and_save(image_path: Path, out_dir: Path, attacks: dict[str, Callable]):
+    image = cv2.imread(image_path, cv2.IMREAD_COLOR)
     for attack in attacks.keys():
         (out_dir / f"{attack}").mkdir(parents=True, exist_ok=True)
-        cv2.imwrite(out_dir / f"{attack}" / image.name, attacks[attack](image))
+        cv2.imwrite(out_dir / f"{attack}" / image_path.name, attacks[attack](image))
 #             [int(cv2.IMWRITE_JPEG_QUALITY), 100]
 
 

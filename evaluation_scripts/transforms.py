@@ -28,11 +28,12 @@ def swap_channels(img: Image.Image, forward: bool) -> Image.Image:
 def transform(image_path: Path, out_dir: Path, changes: dict[str, Callable]):
     image = Image.open(image_path)
 
-    for parent in out_dir.parents[:3]:
+    for parent in image_path.parents[:3]:
         if parent.name in changes.keys():
             # there are already directories matching the change structure
             # only perform the transform relevant for this directory
-            changes[parent.name](image).save(out_dir / f"{parent.name}" / image_path.with_suffix(".png").name)
+            out_dir.mkdir(parents=True, exist_ok=True)
+            changes[parent.name](image).save(out_dir / image_path.with_suffix(".png").name)
             break
     else:
         # no directory structure matching the changes yet

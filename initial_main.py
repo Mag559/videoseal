@@ -1,6 +1,11 @@
 from PIL import Image
+import cv2
+import numpy
 from pathlib import Path
 
+from directory_processor import recursive_process
+from evaluation_scripts.attacks import attack_and_save, specified_attacks
+from evaluation_scripts.transforms import transform, transforms, reverse_transforms
 from handle_model import Model
 
 
@@ -16,54 +21,123 @@ def hide_and_save(model: Model, msg: list[int], img_path: Path, out_path: Path) 
 def detect_and_save(model: Model, img_w_path: Path, out_path: Path) -> None:
     img_w = Image.open(img_w_path).convert("RGB")
     result = model.detect_bits(img_w)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
     with open(out_path, "w") as f:
         f.write(str(result))
 
 
+def rehide(opencv_image):
+    # source: https://stackoverflow.com/questions/43232813/convert-opencv-image-format-to-pil-image-format
+
+    # convert from openCV2 to PIL. Notice the COLOR_BGR2RGB which means that
+    # the color is converted from BGR to RGB
+    color_converted = cv2.cvtColor(opencv_image, cv2.COLOR_BGR2RGB)
+    pil_image = Image.fromarray(color_converted)
+
+    pil_image = vseal.hide_bits(pil_image, replacement_msg)
+
+    # use numpy to convert the pil_image into a numpy array
+    numpy_image = numpy.array(pil_image)
+
+    # convert to a openCV2 image, notice the COLOR_RGB2BGR which means that
+    # the color is converted from RGB to BGR format
+    return cv2.cvtColor(numpy_image, cv2.COLOR_RGB2BGR)
+
 
 if __name__ == "__main__":
+    master_path = Path("C:\\Users\\macie\\steg_images")
+    cover_images = master_path / "group1"
+    transformed_covers = master_path / "group1_pretransformed"
 
-    cover_images = Path("C:\\Users\\macie\\steg_images\\group0_premodified")
-    decoded_path = Path("C:\\Users\\macie\\steg_images\\pseal\\found")
-    encoded_path = Path("C:\\Users\\macie\\steg_images\\pseal\\modified")
-    encoded_path2 = Path("C:\\Users\\macie\\steg_images\\pseal\\ready_to_read")
-    stego_images = Path("C:\\Users\\macie\\steg_images\\pseal\\encoded")
-    stego_images2 = Path("C:\\Users\\macie\\steg_images\\pseal\\encoded_detweaked")
-    secondary_out_path = Path("C:\\Users\\macie\\steg_images\\pseal\\modified")
+    model_path: Path = master_path / "vseal1"
 
-    model: Model = Model()
+    transformed_watermarked = model_path / "watermarked_t"
+    watermarked = model_path / "watermarked"
 
-    msg = [1., 1., 1., 0., 0., 1., 1., 1., 0., 0., 1., 0., 0., 1., 1., 1., 0., 1.,
-             1., 1., 0., 0., 1., 0., 0., 1., 1., 1., 0., 0., 0., 1., 1., 1., 1., 0.,
-             0., 0., 0., 1., 1., 0., 0., 1., 0., 1., 0., 1., 0., 0., 0., 0., 0., 1.,
-             0., 0., 0., 1., 0., 0., 0., 1., 1., 0., 0., 0., 0., 0., 1., 1., 1., 1.,
-             0., 1., 0., 1., 1., 1., 0., 0., 1., 0., 0., 1., 0., 1., 0., 0., 0., 1.,
-             1., 1., 1., 0., 0., 0., 1., 0., 0., 1., 1., 0., 1., 0., 0., 0., 1., 1.,
-             1., 1., 1., 0., 1., 1., 0., 0., 0., 1., 0., 1., 1., 1., 1., 1., 0., 0.,
-             0., 0., 1., 1., 1., 1., 0., 0., 1., 1., 0., 0., 0., 0., 0., 1., 1., 0.,
-             0., 1., 1., 0., 1., 0., 1., 0., 1., 0., 1., 0., 0., 0., 0., 1., 1., 1.,
-             0., 0., 0., 1., 0., 0., 1., 0., 1., 1., 0., 1., 0., 1., 0., 0., 1., 1.,
-             1., 0., 0., 0., 1., 0., 1., 1., 1., 0., 0., 1., 0., 0., 1., 0., 1., 1.,
-             1., 1., 0., 1., 0., 1., 0., 1., 0., 1., 0., 0., 0., 1., 1., 0., 0., 1.,
-             1., 1., 0., 0., 0., 1., 1., 0., 1., 1., 0., 0., 1., 1., 1., 1., 0., 0.,
-             0., 0., 1., 0., 1., 1., 1., 1., 1., 1., 0., 0., 0., 0., 0., 1., 1., 1.,
-             0., 0., 0., 0.]
-    hide_and_save(model, msg,
-                  Path(r"C:\Users\macie\GitHub\SteganographyProjects\videoseal\assets\imgs\1.jpg"), Path("test.png"))
+    attacked = model_path / "attacked"
+
+    transformed_attacked = model_path / "transformed_attacked"
+    found = model_path / "found"
+
+    vseal: Model = Model()
+
+    msg = [1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 0, 1,
+             1, 1, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0,
+             0, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1,
+             0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 1,
+             0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 1,
+             1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 0, 1, 1,
+             1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0,
+             0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0,
+             0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 1,
+             0, 0, 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 1, 1,
+             1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 0, 1, 1,
+             1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1,
+             1, 1, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0,
+             0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1,
+             0, 0, 0, 0]
+
+    replacement_msg = [0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1,
+        1, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0,
+        0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 0, 0,
+        0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0,
+        0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0,
+        1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 1, 1, 1,
+        0, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0,
+        0, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1,
+        0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 1,
+        0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0,
+        0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1,
+        1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1,
+        1, 1, 0, 1, 0, 1, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 1, 1,
+        1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0,
+        1, 1, 1, 1]
+
+    # transform before watermarking
     # recursive_process(
     #     cover_images,
-    #     stego_images,
-    #     lambda in_path, out_path: hide_and_save(model_, in_path, device_, out_path, msg_),
+    #     transformed_covers,
+    #     lambda in_image, out_image: transform(in_image, out_image.parent, transforms)
     # )
 
-    # recursive_process(
-    #     stego_images2,
-    #     secondary_out_path,
-    #     lambda in_path, out_path: hide_and_save(model_, in_path, device_, out_path.parent / "rehidden" / out_path.name, msg_),
-    # )
+    # watermark
+    recursive_process(
+        transformed_covers,
+        transformed_watermarked,
+        lambda in_image, out_image: hide_and_save(vseal, msg, in_image, out_image)
+    )
 
-    # recursive_process(
-    #     encoded_path2,
-    #     decoded_path,
-    #     lambda in_path, out_path: detect_and_save(model_, in_path, device_, out_path.with_suffix(".txt"))
-    # )
+    # reverse transform to get image looking like the original
+    recursive_process(
+        transformed_watermarked,
+        watermarked,
+        lambda in_image, out_image: transform(in_image, out_image.parent, reverse_transforms)
+    )
+
+    # attack the image to test robustness
+
+    # embed a secondary watermark in the untransformed version of the image
+
+    specified_attacks["rehide"] = rehide
+
+    recursive_process(
+        watermarked,
+        attacked,
+        lambda in_image, out_image: attack_and_save(in_image, out_image.parent, specified_attacks)
+    )
+
+    # transform images before detecting the watermark
+    recursive_process(
+        attacked,
+        transformed_attacked,
+        lambda in_image, out_image: transform(in_image, out_image.parent, transforms)
+    )
+
+
+    # detect the watermark
+    recursive_process(
+        transformed_attacked,
+        found,
+        lambda in_image, out_file: detect_and_save(vseal, in_image, out_file.with_suffix(".txt"))
+    )
+
