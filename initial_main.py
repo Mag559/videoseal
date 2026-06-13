@@ -1,18 +1,7 @@
-from collections.abc import Callable
 from PIL import Image
 from pathlib import Path
 
 from handle_model import Model
-
-
-def recursive_process(input_directory: Path, output_directory, task: Callable[[Path, Path], None]) -> None:
-    for item in input_directory.iterdir():
-        if item.is_dir():
-            recursive_process(item, output_directory / item.name, task)
-            continue
-
-        print(f"Processing {item}")
-        task(item, output_directory / item.name)
 
 
 def hide_and_save(model: Model, msg: list[int], img_path: Path, out_path: Path) -> None:
