@@ -48,12 +48,7 @@ def dir_diff(input_directory: Path, original_text: str):
     return sum(diffs) / len(diffs)
 
 
-if __name__ == '__main__':
-    evaluated_dir: Path = Path(r"C:\Users\macie\steg_images\vseal\found")
-    original: str = ""
-    replacement: str = ""
-
-
+def diff_main(evaluated_dir: Path, original: str, replacement: str) -> None:
     result = ""
     for category in evaluated_dir.iterdir():
         print("==========================================================================")
@@ -68,7 +63,7 @@ if __name__ == '__main__':
             result += f"{diff}\t"
             print(f"On average missing {diff} characters of original text")
 
-            if subcategory.name == "rehidden" or subcategory.name == "rehidden_results":
+            if subcategory.name == "rehidden" or subcategory.name == "rehide":
                 replacement_diff = dir_diff(subcategory, replacement)
                 result += f"{replacement_diff}\t"
                 print(f"On average missing {replacement_diff} characters of replacement text")

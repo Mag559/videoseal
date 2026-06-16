@@ -3,8 +3,7 @@ from pathlib import Path
 
 from PIL import Image, ImageChops, ImageOps
 
-from scramble import scramble
-
+from algorithm.scramble import scramble
 
 
 def shift_channels(img: Image.Image, offset) -> Image.Image:
