@@ -1,3 +1,13 @@
+# Code heavily based on the one found at:
+# https://github.com/facebookresearch/videoseal/blob/main/docs/torchscript.md
+# (videoseal docs on using the available trained model without the entire package)
+#
+# which is licenced under:
+# MIT License
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+# a full copy of the license can be found in the ckpts directory
+
+
 import torch
 from PIL import Image
 from torchvision.transforms.functional import to_tensor, to_pil_image
