@@ -41,7 +41,7 @@ def rehide(model, opencv_image):
     numpy_image = numpy.array(pil_image)
 
     # convert to a openCV2 image, notice the COLOR_RGB2BGR which means that
-    # the color is converted from RGB to BGR format
+    # the colour is converted from RGB to BGR format
     return cv2.cvtColor(numpy_image, cv2.COLOR_RGB2BGR)
 
 

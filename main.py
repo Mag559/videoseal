@@ -11,11 +11,11 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.mode == "watermark":
-        from algorithm.api import hide
+        from algorithm.interface import hide
 
         hide(args.message, args.key, args.input_file, args.output_file)
     elif args.mode == "detect":
-        from algorithm.api import detect
+        from algorithm.interface import detect
 
         detected = detect(str, args.key, args.input_file)
         if args.output_file.endswith(".txt"):
