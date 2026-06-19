@@ -1,4 +1,3 @@
-import base64
 import json
 import os
 import tempfile
@@ -47,9 +46,6 @@ def hide_endpoint():
                 raise ValueError()
         except Exception:
             return jsonify({"error": "'message_bits' must be a JSON list of integers (0/1)"}), 400
-    elif "message_file" in request.files:
-        f = request.files["message_file"]
-        message = f.read()
 
 
     if message is None:
@@ -107,10 +103,6 @@ def detect_endpoint():
         if message_type == "str":
             msg = interface.detect(str, key, in_path)
             result = {"type": "str", "result": msg}
-        elif message_type == "bytes":
-            data = interface.detect(bytes, key, in_path)
-            b64 = base64.b64encode(data).decode()
-            result = {"type": "bytes", "result_b64": b64}
         elif message_type == "int":
             n = interface.detect(int, key, in_path)
             result = {"type": "int", "result": n}

@@ -7,9 +7,12 @@ BYTE_COUNT: int = BIT_COUNT // 8
 
 def bytes_to_bits(bytes_list: bytearray | bytes) -> list[int]:
     bits_list = []
-    for byte in bytes_list:
-        bits_in_byte = [(byte >> (7 - i)) & 0b1 for i in range(8)]
-        bits_list.extend(bits_in_byte)
+    for byte_idx in range(BYTE_COUNT):
+        if byte_idx < len(bytes_list):
+            bits_in_byte = [(bytes_list[byte_idx] >> (7 - i)) & 0b1 for i in range(8)]
+            bits_list.extend(bits_in_byte)
+        else:
+            bits_list.extend([0 for _ in range(8)])
     return bits_list
 
 
