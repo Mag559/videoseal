@@ -1,10 +1,10 @@
-from flask import Flask, request, jsonify, send_file, abort
-from werkzeug.utils import secure_filename
-import tempfile
-import os
-import io
-import json
 import base64
+import json
+import os
+import tempfile
+
+from flask import Flask, request, jsonify, send_file
+from werkzeug.utils import secure_filename
 
 from algorithm import interface
 
@@ -50,14 +50,7 @@ def hide_endpoint():
     elif "message_file" in request.files:
         f = request.files["message_file"]
         message = f.read()
-    else:
-        # fallback: try to read raw body if any
-        if request.data:
-            try:
-                decoded = request.data.decode()
-                message = decoded
-            except Exception:
-                message = request.data
+
 
     if message is None:
         return jsonify({"error": "No message provided. Provide form field 'message' (text), 'message_int', 'message_bits' (JSON list) or upload 'message_file'"}), 400
