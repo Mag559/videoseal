@@ -2,3 +2,5 @@ scipy
 pillow
 numpy
 opencv-python
+flask
+werkzeug
